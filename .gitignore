@@ -1,0 +1,8 @@
+# Personal data: never commit
+config.json
+companies.csv
+companies.xlsx
+*.pdf
+sent_log.csv
+drafts/
+__pycache__/
