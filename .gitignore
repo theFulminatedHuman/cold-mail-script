@@ -6,3 +6,4 @@ companies.xlsx
 sent_log.csv
 drafts/
 __pycache__/
+outbox/

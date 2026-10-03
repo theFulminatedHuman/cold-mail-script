@@ -3,6 +3,49 @@
 Sends personalized cold emails to startups from your Gmail, with your resume attached. **Nothing is
 sent until you approve it.**
 
+There are two ways to use it:
+
+- **With Claude Code (recommended, no API key).** Claude Code researches and writes the emails on
+  your Claude subscription. You approve them in the chat, and `send.py` sends them. See the next
+  section.
+- **With `outreach.py`.** It does everything on its own through the Claude API, so it needs an API
+  key with credit. See [Using outreach.py](#using-outreachpy-api-key-path).
+
+## With Claude Code (no API key)
+
+You need Claude Code installed and signed in, Python 3.10 or newer, and a Gmail account that can
+create app passwords. That means a personal Gmail with 2-Step Verification on; college accounts
+often block this.
+
+```bash
+git clone https://github.com/theFulminatedHuman/cold-mail-script.git
+cd cold-mail-script
+pip install -r requirements.txt
+cp ~/Downloads/YourResume.pdf resume.pdf          # your resume
+cp ~/Downloads/startups.xlsx companies.xlsx       # your spreadsheet (or companies.csv)
+claude
+```
+
+In Claude Code, type **"start"**. `CLAUDE.md` guides it through these steps:
+
+1. It sets up `config.json` with you: sending Gmail, name, website, roles.
+2. It reads your resume and the spreadsheet.
+3. It researches each company on the web and writes a draft to `outbox/<company>.md`.
+4. It shows you drafts in batches of 3 to 5. A draft is marked `approved` only when you approve it.
+
+To send the approved ones, run this in your own terminal:
+
+```bash
+export GMAIL_APP_PASSWORD="your16letterapppassword"   # made while signed in as the sending Gmail
+python send.py            # shows each approved email and asks y/n before sending
+python send.py --list     # see every draft and its status
+```
+
+`send.py` attaches your resume, sends from `your_email` in `config.json`, marks each file `sent`
+and logs it to `sent_log.csv`, so nobody is emailed twice. It also enforces the daily limit.
+
+## Using outreach.py (API key path)
+
 For each row in your spreadsheet it:
 
 1. **Researches the company.** It uses the Claude API with web search to find what they build,
@@ -18,9 +61,9 @@ For each row in your spreadsheet it:
 It also caps sends per day (`daily_limit`, default 25) and waits between sends
 (`min_seconds_between_sends`, default 60) so Gmail doesn't flag you as spam.
 
-## One-time setup (about 10 minutes)
+### One-time setup (about 10 minutes)
 
-### 1. Get the two keys
+#### 1. Get the two keys
 
 - **Claude API key.** Create one at <https://platform.claude.com/settings/keys> and add some
   credit. As a rough guide, each company costs a few US cents to tens of cents, mostly for the web
@@ -29,7 +72,7 @@ It also caps sends per day (`daily_limit`, default 25) and waits between sends
   password at <https://myaccount.google.com/apppasswords> (any name, e.g. "outreach"). It is
   16 letters. **Do not use your normal Gmail password.**
 
-### 2. Install Python and the script
+#### 2. Install Python and the script
 
 You need Python 3.10 or newer (on Windows, install it from <https://python.org> and tick
 "Add to PATH").
@@ -40,7 +83,7 @@ cd cold-mail-script
 pip install -r requirements.txt
 ```
 
-### 3. Add your files
+#### 3. Add your files
 
 - Put your resume in this folder as `resume.pdf`.
 - Copy `config.example.json` to `config.json` and fill it in: your name, Gmail address, phone,
@@ -53,7 +96,7 @@ pip install -r requirements.txt
 
 These files hold your personal data and are gitignored, so they never get committed.
 
-### 4. Set the keys for this terminal session
+#### 4. Set the keys for this terminal session
 
 macOS / Linux:
 ```bash
@@ -69,7 +112,7 @@ $env:GMAIL_APP_PASSWORD="abcdefghijklmnop"
 
 If `GMAIL_APP_PASSWORD` isn't set, the script asks for it with hidden input.
 
-## Run it
+### Run it
 
 ```bash
 python outreach.py --dry-run --limit 3   # first: draft 3 emails, send nothing, read drafts/
@@ -81,7 +124,7 @@ python outreach.py --only "Razorpay"     # just one company
 Research is cached in `drafts/research/`. Re-running a company doesn't repeat the web search;
 delete its file to force fresh research.
 
-### No laptop setup? Use Google Colab
+#### No laptop setup? Use Google Colab
 
 1. Open <https://colab.research.google.com> and start a new notebook.
 2. Upload `outreach.py`, `requirements.txt`, `config.json`, `resume.pdf` and your spreadsheet
